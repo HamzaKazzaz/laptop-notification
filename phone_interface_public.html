@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laptop Notification</title>
+    <style>
+        :root {
+            --color-primary: #218080d;
+            --color-background: #fcfcf9;
+            --color-surface: #ffffff;
+            --color-text: #134252;
+            --color-success: #208d8d;
+            --color-error: #c01530;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin: 0 0 20px 0;
+        }
+
+        .card {
+            background: var(--color-surface);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e5e5;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(33, 128, 141, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 200ms;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d7478;
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: var(--color-text);
+            border: 1px solid #e5e5e5;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e8e8e8;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background-color: rgba(32, 141, 141, 0.15);
+            color: var(--color-success);
+            border: 1px solid rgba(32, 141, 141, 0.3);
+        }
+
+        .status-error {
+            background-color: rgba(192, 21, 48, 0.15);
+            color: var(--color-error);
+            border: 1px solid rgba(192, 21, 48, 0.3);
+        }
+
+        .status-info {
+            background-color: rgba(33, 128, 141, 0.15);
+            color: var(--color-primary);
+            border: 1px solid rgba(33, 128, 141, 0.3);
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            background-color: #f9f9f9;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--color-primary);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .notification-item strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--color-primary);
+        }
+
+        .notification-item small {
+            display: block;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #999;
+            margin-right: 8px;
+        }
+
+        .dot.connected {
+            background-color: var(--color-success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e5e5e5;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 200ms;
+        }
+
+        .mode-btn.active {
+            border-color: var(--color-primary);
+            background-color: rgba(33, 128, 141, 0.1);
+            color: var(--color-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Laptop Bildirim Alıcısı</h1>
+
+        <div class="card">
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="switchMode('internet')">🌍 İnternet</button>
+                <button class="mode-btn" onclick="switchMode('wifi')">📡 WiFi</button>
+            </div>
+
+            <div id="status" class="status status-info" style="display: none;"></div>
+
+            <div class="form-group">
+                <label>Bağlantı Durumu</label>
+                <div style="padding: 10px; background-color: #f9f9f9; border-radius: 6px; font-size: 14px;">
+                    <span class="dot"></span>
+                    <span id="connectionStatus">Bağlı Değil</span>
+                </div>
+            </div>
+
+            <div id="internetMode">
+                <div class="form-group">
+                    <label>WebSocket URL (wss://)</label>
+                    <input type="text" id="wsUrl" placeholder="wss://laptop-notification-prod.railway.app" value="wss://laptop-notification-prod.railway.app">
+                </div>
+            </div>
+
+            <div id="wifiMode" style="display: none;">
+                <div class="form-group">
+                    <label>Bilgisayar IP Adresi</label>
+                    <input type="text" id="computerIp" placeholder="192.168.1.100">
+                </div>
+                <div class="form-group">
+                    <label>Port (varsayılan: 8765)</label>
+                    <input type="text" id="port" placeholder="8765" value="8765">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="connect()">🔗 BAĞLAN</button>
+            <button class="btn btn-secondary" onclick="disconnect()">🔌 BAĞLANTIYI KES</button>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0;">📬 Bildirimler</h3>
+            <div id="notifications" class="notification-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentMode = 'internet';
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('internetMode').style.display = mode === 'internet' ? 'block' : 'none';
+            document.getElementById('wifiMode').style.display = mode === 'wifi' ? 'block' : 'none';
+            
+            disconnect();
+        }
+
+        function connect() {
+            try {
+                let url;
+                if (currentMode === 'internet') {
+                    url = document.getElementById('wsUrl').value.trim();
+                } else {
+                    const ip = document.getElementById('computerIp').value.trim();
+                    const port = document.getElementById('port').value.trim() || '8765';
+                    url = `ws://${ip}:${port}`;
+                }
+
+                if (!url) {
+                    showStatus('❌ Lütfen URL veya IP girin', 'error');
+                    return;
+                }
+
+                ws = new WebSocket(url);
+
+                ws.onopen = () => {
+                    updateConnectionStatus(true);
+                    showStatus('✅ Bağlantı başarılı!', 'success');
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        addNotification(data);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    updateConnectionStatus(false);
+                    showStatus('❌ Bağlantı hatası', 'error');
+                };
+
+                ws.onclose = () => {
+                    updateConnectionStatus(false);
+                    showStatus('❌ Bağlantı koptu', 'error');
+                };
+            } catch (e) {
+                showStatus('❌ ' + e.message, 'error');
+            }
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                updateConnectionStatus(false);
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const dot = document.querySelector('.dot');
+            const text = document.getElementById('connectionStatus');
+            
+            if (connected) {
+                dot.classList.add('connected');
+                text.textContent = '🟢 Bağlı';
+            } else {
+                dot.classList.remove('connected');
+                text.textContent = '🔴 Bağlı Değil';
+            }
+        }
+
+        function addNotification(data) {
+            const notifDiv = document.getElementById('notifications');
+            const item = document.createElement('div');
+            item.className = 'notification-item';
+            item.innerHTML = `
+                <strong>${data.title || '💻 Bildirim'}</strong>
+                <div>${data.message || data.computer || 'Bildirim geldi'}</div>
+                ${data.ip ? `<div>IP: ${data.ip}</div>` : ''}
+                <small>${data.timestamp || new Date().toLocaleTimeString('tr-TR')}</small>
+            `;
+            
+            notifDiv.insertBefore(item, notifDiv.firstChild);
+            
+            // Limit to 20 notifications
+            while (notifDiv.children.length > 20) {
+                notifDiv.removeChild(notifDiv.lastChild);
+            }
+
+            // Play notification sound
+            playNotificationSound();
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status status-${type}`;
+            statusDiv.style.display = 'block';
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function playNotificationSound() {
+            // Try to play a notification sound
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        // Auto-connect if in internet mode
+        window.addEventListener('load', () => {
+            // Don't auto-connect on load
+        });
+    </script>
+</body>
+</html>
